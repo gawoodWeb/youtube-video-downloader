@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="/static/css/home.css">
+  <title>Lofbee downloader</title>
+</head>
+<body>
+  
+  <div class="container">
+  
+    <h2>YOUTUBE VIDEO DOWNLOADER</h2>
+    <p>Enter the link :</p>
+    
+    
+    <form action="/submited" method="POST">
+      <input type="text" name="link" id="link">
+      <button type="submit">Download</button>
+    </form>
+    
+    <div class="video-details">
+      <div class="details-thumbnail">
+        <img src="" alt="thumbnail">
+      </div>
+      <div class="details-property">
+        <h3>Video title</h3>
+        <p>video description</p>
+      </div>
+    </div>
+    
+    <div class="video-status">Your video is successfully downloaded!</div>
+    
+  </div>
+</body>
+</html>
+
+
+
+
