@@ -1,0 +1,6 @@
+*.mp3
+*.mp4
+*.zip
+/node_modules
+.env
+*.swp
