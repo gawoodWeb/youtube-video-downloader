@@ -7,4 +7,14 @@
 
 /env
 /venv
+/downloads/*
+*.webm
+*.jpg
+*.svg
+*.ttf
+
+/asset/
+
+
+
 
