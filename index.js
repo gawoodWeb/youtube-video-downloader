@@ -10,7 +10,9 @@ app.set("view engine", "ejs");
 //app.use(express.static("/static",path.join(__dirname, "public"))) 
 
 app.use('/static', express.static(path.join(__dirname, 'public')))
+app.use('/media', express.static(path.join(__dirname, 'downloads')))
 app.use(express.json())
+
 
 /*
 const option = {
@@ -36,7 +38,37 @@ app.get("/",(req, res)=>{
 
 
 
+app.post("/detail",(req, res)=>{
+	
+	console.log(req.body);
+	let url = req.body.detail;
+	const option = {
+		//mode : "text",
+		//pythonPath : ,
+		//pythonOptions: [""],
+		scriptPath: "./exec",
+		args : ["--url", `${url}`, "--quality", "480p", "--choice", "video"]
+	}
 
+  //python.PythonShell.send('hello')
+	
+	res.json({
+	  title: "How to kill yourself",
+	  desc : "5 best way to dissaper...",
+	  poster: "/media/01.png",
+	  src : "http://localhost:3000/media/games.webm" || "/media/games.webm"
+	});
+	
+	
+	return
+	python.PythonShell.run("./down.py", option)
+	.then(msg =>{                          
+	    console.log("Hy", msg);
+	    
+
+      //res.json("downloading");
+	})
+})
 
 
 
@@ -52,14 +84,29 @@ app.post("/download",(req, res)=>{
         args : ["--url", `${url}`, "--quality", "480p", "--choice", "video"]
 	}
 
-  python.PythonShell.send('hello')
+  //python.PythonShell.send('hello')
 
+	res.download(path.join(__dirname, "downloads/games.webm"))
 	
+	return 
   python.PythonShell.run("./down.py", option)
 	.then(msg =>{                          
 	    console.log("Hy", msg);
-      res.json("downloading");
+	    
+
+      //res.json("downloading");
 	})
+	
+	
+	/*
+	res.download("/audi1.mp3", "tatesTalk.mp3", {root: path.join(__dirname, "download")}, 
+	function(err){
+	  if(err){
+	    console.log("GoGo")
+	  }
+	})
+	*/
+	
 })
 
 
