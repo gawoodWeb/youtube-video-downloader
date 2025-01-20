@@ -370,7 +370,8 @@ form#selectvideo{
 }
 
 .container .video-stats{
-  height: 502px;
+  height: auto;
+  min-height: 202px;
   width: 100%;
 }
 
