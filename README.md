@@ -1,6 +1,4 @@
 ## YOUTUBE VIDE DOWNLODER
-*** USING (EJS,EXPRESS,NODE,YT-DLP-EXEC)
-
 
 # 🎥 YouTube Video Downloader with `yt-dlp` and Express.js
 
