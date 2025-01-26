@@ -1,10 +1,12 @@
+
 const express = require("express")
 const ejs = require("ejs");
 const path = require("path")
-const python = require("python-shell");
+//const python = require("python-shell");
 const ytb  = require("yt-dlp-exec");
 const fs = require("fs")
 const app = express();
+const crypto = require("crypto")
 
 app.set("view engine", "ejs");
 //app.use(express.static("/static",path.join(__dirname, "public"))) 
@@ -32,15 +34,16 @@ app.get("/",(req, res)=>{
 
 app.post("/detail",(req, res)=>{
   let url = req.body.url;
-  console.log("Request is processing!")
+  console.log("Request is processing!",url)
   
   GET_DETAILS(url)
   .then((info)=>{
     console.log("Sending info")
-    const formats = FILTER_FORMAT(info.formats)
+    console.log("Formats");
+
     
-    
-    
+    const formats = FILTER_FORMAT(info.formats) 
+    console.log("Working 100% ...")
     res.json({
   	  title: info.title || "How to kill yourself",
   	  desc : info.description || "5 best way to dissaper...",
@@ -73,11 +76,12 @@ async function  GET_DETAILS(url){
       noCallHome: true,
       dumpSingleJson: true
     })
-    console.log(info)
+    //console.log(info)
     return info;
   }
   catch(e){
-    return {err: e}
+      console.log(e)
+    throw e 
   }
 }
 
@@ -85,113 +89,73 @@ async function  GET_DETAILS(url){
 function FILTER_FORMAT(formats){
   console.log("Format process.")
   if(Array.isArray(formats)){
-  console.log("Formating ...")
-    
+    console.log("Formating ...")
     return formats
-      .filter(format => format.ext && format.filesize) // Keep formats with size and extension
+      .filter(format => format.ext && format.filesize) // Garder les formats avec extension et taille
       .map(format => ({
-        size: format.filesize ? `${(format.filesize / 1024 / 1024).toFixed(2)} MB` : 'Unknown',
-        type: format.ext || 'Unknown',
-        resolution: format.height ? `${format.height}p` : 'Unknown',
+        formatId: format.format_id, // Récupérer l'ID de format
+        size: format.filesize ? `${(format.filesize / 1024 / 1024).toFixed(2)} MB` : 'Unknown', // Taille
+        type: format.ext || 'Unknown', // Extension du fichier
+        resolution: format.height ? `${format.height}p` : 'Unknown', // Résolution
       }));
-    
   }
-  
 }
-
 
 let datas = null
 
 app.post("/video",(req,res)=>{
-	console.log(req.body)
-	let data = req.body
-	res.status(200)
-	res.send("Yes")
-})
-
-
-
-
-
-/*****
-	
-	console.log(req.body);
-	let url = req.body.url;
-	const option = {
-		//mode : "text",
-		//pythonPath : ,
-		//pythonOptions: [""],
-		scriptPath: "./exec",
-		args : ["--url", `${url}`, "--quality", "480p", "--choice", "video"]
-	}
-	
-	console.log(req.body);
-	
-	/*****
-	 * res.json({
-	  title: "How to kill yourself",
-	  desc : "5 best way to dissaper...",
-	  poster: "/media/01.png",
-	  src : "http://localhost:3000/media/games.webm" || "/media/games.webm"
-	});
+	let data = req.body	
+	let format_id = data.formatId[0]
+	let uuid = crypto.randomUUID().slice(0,5);
+	const fileName = `${uuid}video_${format_id}.mp4`; //
+    const filePath = path.join(FOLDER, fileName);
 	
 	
-
-	//return
-	python.PythonShell.run("./down.py", option)
-	.then(msg =>{                          
-	    console.log("Hy", msg);
-	    res.status(200);
-	    res.send("Succesfull");
-	})
-})
-
-*****/
-
-app.post("/download",(req, res)=>{
 	
-	console.log(req.body);
-  let url = req.body.url;
-	const option = {
-        //mode : "text",
-        //pythonPath : ,
-        //pythonOptions: [""],
-        scriptPath: "./exec",
-        args : ["--url", `${url}`, "--quality", "480p", "--choice", "video"]
-	}
-
-  //python.PythonShell.send('hello')
-
-	res.download(path.join(__dirname, "downloads/games.webm"))
+	console.log(req.body, fileName, filePath)
 	
-	return 
-  python.PythonShell.run("./down.py", option)
-	.then(msg =>{                          
-	    console.log("Hy", msg);
-	    
-
-      //res.json("downloading");
-	})
+    ytb(data.url, {
+        format: format_id ,
+        output: filePath
+    }).then(output => {
+        console.log('Download completed');
+        res.status(200)
+	    res.json({
+            message: "Download successful",
+            filePath: `/${fileName}`, // Lien pour accéder au fichier téléchargé
+        });
+    }).catch(err => {
+        console.error(err);
+    });
 	
-	
-	/*
-	res.download("/audi1.mp3", "tatesTalk.mp3", {root: path.join(__dirname, "download")}, 
-	function(err){
-	  if(err){
-	    console.log("GoGo")
-	  }
-	})
-	*/
 	
 })
 
 
 
 
+app.post("/download", (req, res) => {
+    const { filePath } = req.body;
+    console.log("Receive ", filePath)
+    if (!filePath) {
+        return res.status(400).json({ error: "File path is required." });
+    }
 
+    const sanitizedFileName = path.basename(filePath); // Avoid directory traversal
+    const fullPath = path.join(__dirname, "downloads", sanitizedFileName);
 
-
-
+    if (fs.existsSync(fullPath)) {
+        console.log("Sending video")
+        res.download(fullPath, sanitizedFileName, (err) => {
+            if (err) {
+                console.error("Error downloading file:", err);
+                res.status(500).send("Failed to download the file.");
+            }
+        });
+    } else {
+        res.status(404).send("File not found.");
+    }
+});
 
 
 app.listen(3000, ()=>{
